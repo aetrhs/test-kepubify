@@ -11,6 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app code and binary
 COPY . .
 
+# Make kepubify executable (for Linux; Windows .exe works via Wine/Mono but we use Linux binary)
+RUN chmod +x bin/kepubify
+
 # Expose port
 EXPOSE 5000
 
