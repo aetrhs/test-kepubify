@@ -44,20 +44,26 @@ def download_file(file_id):
   output_path = input_path + '.kepub.epub'
   
   try:
-    print(f"Running kepubify: bin\\kepubify.exe -v {input_path}")
+    print(f"Running kepubify: bin\\kepubify -v {input_path}")
     result = subprocess.run(
-      ['bin\\kepubify.exe', '-v', input_path],
+      ['bin/kepubify', '-v', input_path],
       check=True,
       capture_output=True,
       text=True,
       cwd=os.path.dirname(os.path.abspath(__file__))
     )
     print(f"Kepubify stdout: {result.stdout}\nStderr: {result.stderr}")
+
+    print(f"Files in bin: {os.listdir('bin')}")
+    print(f"Current dir: {os.getcwd()}")
+    print(f"Running kepubify: bin/kepubify -v {input_path}")
+
     if os.path.exists(output_path):
       response = send_file(
         output_path,
         as_attachment=True,
-        download_name=f"{os.path.splitext(file_data['name'])[0]}.kepub.epub"
+        download_name=f"{os.path.splitext(file_data['name'])[0]}.kepub.epub",
+        mimetype='application/epub+zip'
       )
       os.remove(output_path)  # Cleanup
       return response
@@ -68,7 +74,7 @@ def download_file(file_id):
     print(error_msg)
     return error_msg, 500
   except FileNotFoundError:
-    return 'kepubify.exe not found. Ensure bin\\kepubify.exe exists.', 500
+    return 'kepubify not found. Ensure bin/kepubify exists.', 500
 
 if __name__ == '__main__':
   app.run(debug=True, host='0.0.0.0', port=5000)
