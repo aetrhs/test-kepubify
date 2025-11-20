@@ -41,34 +41,32 @@ def download_file(file_id):
     abort(404)
   
   input_path = os.path.join(app.config['UPLOAD_FOLDER'], file_id)
-  output_path = input_path + '.kepub.epub'
   
   try:
-    print(f"Running kepubify: bin\\kepubify -v {input_path}")
+    # run kepubify conversion
+    kepubify_cmd = './bin/kepubify' if os.name != 'nt' else './bin/kepubify-windows.exe'
     result = subprocess.run(
-      ['bin/kepubify', '-v', input_path],
+      [kepubify_cmd, input_path],
       check=True,
       capture_output=True,
       text=True,
       cwd=os.path.dirname(os.path.abspath(__file__))
     )
-    print(f"Kepubify stdout: {result.stdout}\nStderr: {result.stderr}")
-
-    print(f"Files in bin: {os.listdir('bin')}")
-    print(f"Current dir: {os.getcwd()}")
-    print(f"Running kepubify: bin/kepubify -v {input_path}")
-
-    if os.path.exists(output_path):
+    print(f"Files in uploads after conversion: {os.listdir('uploads')}")
+    print(f"Kepubify stdout: {result.stdout}")
+    print(f"Kepubify stderr: {result.stderr}")
+    
+    # kepubify converts in-place, so the original file is now a kepub
+    if os.path.exists(input_path):
       response = send_file(
-        output_path,
+        input_path,
         as_attachment=True,
         download_name=f"{os.path.splitext(file_data['name'])[0]}.kepub.epub",
         mimetype='application/epub+zip'
       )
-      os.remove(output_path)  # Cleanup
       return response
     else:
-      return f"Output file not found: {output_path}", 500
+      return "Converted file not found", 500
   except subprocess.CalledProcessError as e:
     error_msg = f"Conversion failed: Return code {e.returncode}\nStdout: {e.stdout}\nStderr: {e.stderr}"
     print(error_msg)
